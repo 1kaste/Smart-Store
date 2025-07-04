@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+
+
+import React, { useState } from 'react';
 import Button from '../../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Icons } from '../../components/icons';
 import { GoogleGenAI } from "@google/genai";
-import { Product, Order } from '../../data/mock-data';
-import Modal from '../../components/ui/Modal';
+import { Product } from '../../src/data/mock-data';
+import Modal from '../../src/components/ui/Modal';
 import ProductCard from '../../components/ProductCard';
-import Input from '../../components/ui/Input';
-import { useData } from '../../contexts/DataContext';
-import { useNotification } from '../../contexts/NotificationContext';
+import { useData } from '../../src/contexts/DataContext';
 
 const AIPreviewModal: React.FC<{
   isOpen: boolean;
@@ -36,7 +36,7 @@ const AIPreviewModal: React.FC<{
         )}
         {!isLoading && !error && suggestions.length > 0 && (
           <>
-            <p className="text-gray-600 dark:text-gray-400">Here are some new product ideas. Would you like to add them to your inventory?</p>
+            <p className="text-gray-600 dark:text-gray-400">Here are some new product ideas. Would you like to add them to your 'Latest Arrivals'?</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto p-2">
               {suggestions.map((p, index) => (
                 <ProductCard key={`${p.id}-${index}`} product={p} />
@@ -56,97 +56,12 @@ const AIPreviewModal: React.FC<{
   );
 };
 
-const SalesAnalyticsCard: React.FC<{orders: Order[]}> = ({ orders }) => {
-    type TimeRange = 'Today' | 'This Week' | 'This Month' | 'Custom';
-    const [timeRange, setTimeRange] = useState<TimeRange>('This Month');
-    const [customDates, setCustomDates] = useState<{start: string, end: string}>({
-        start: new Date().toISOString().split('T')[0],
-        end: new Date().toISOString().split('T')[0]
-    });
-
-    const filteredOrders = useMemo(() => {
-        const now = new Date();
-        let startDate = new Date();
-        let endDate = new Date(now);
-
-        switch(timeRange) {
-            case 'Today':
-                startDate.setHours(0,0,0,0);
-                break;
-            case 'This Week':
-                startDate = new Date(now.setDate(now.getDate() - now.getDay()));
-                startDate.setHours(0,0,0,0);
-                break;
-            case 'This Month':
-                startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-                startDate.setHours(0,0,0,0);
-                break;
-            case 'Custom':
-                startDate = new Date(customDates.start);
-                endDate = new Date(customDates.end);
-                break;
-        }
-
-        return orders.filter(o => {
-            const orderDate = new Date(o.date);
-            return orderDate >= startDate && orderDate <= endDate && o.status === 'Delivered';
-        });
-
-    }, [orders, timeRange, customDates]);
-
-    const totalRevenue = filteredOrders.reduce((sum, order) => sum + order.total, 0);
-    const totalOrders = filteredOrders.length;
-
-    return (
-        <Card>
-            <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <CardTitle>Sales Analytics</CardTitle>
-                    <CardDescription>Track sales performance over time.</CardDescription>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                    {(['Today', 'This Week', 'This Month'] as TimeRange[]).map(range => (
-                        <Button key={range} variant={timeRange === range ? 'default' : 'outline'} size="sm" onClick={() => setTimeRange(range)}>{range}</Button>
-                    ))}
-                    <Button variant={timeRange === 'Custom' ? 'default' : 'outline'} size="sm" onClick={() => setTimeRange('Custom')}>Custom</Button>
-                </div>
-            </CardHeader>
-            <CardContent>
-                {timeRange === 'Custom' && (
-                    <div className="flex flex-col sm:flex-row items-center gap-4 mb-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-                        <div className="space-y-1 w-full sm:w-auto">
-                            <label htmlFor="startDate" className="text-sm font-medium">Start Date</label>
-                            <Input type="date" id="startDate" value={customDates.start} onChange={e => setCustomDates(d => ({...d, start: e.target.value}))} />
-                        </div>
-                        <div className="space-y-1 w-full sm:w-auto">
-                            <label htmlFor="endDate" className="text-sm font-medium">End Date</label>
-                            <Input type="date" id="endDate" value={customDates.end} onChange={e => setCustomDates(d => ({...d, end: e.target.value}))} />
-                        </div>
-                    </div>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-center">
-                    <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Total Revenue</p>
-                        <p className="text-3xl font-bold">Ksh {totalRevenue.toLocaleString()}</p>
-                    </div>
-                    <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Delivered Orders</p>
-                        <p className="text-3xl font-bold">{totalOrders}</p>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
-};
-
-
 const DashboardPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
   const { products, categories, orders, addProducts } = useData();
-  const { showToast } = useNotification();
 
   const handleAIRefresh = async () => {
     setIsModalOpen(true);
@@ -194,6 +109,7 @@ const DashboardPage: React.FC = () => {
       const parsedData = JSON.parse(jsonStr);
 
       if (Array.isArray(parsedData)) {
+          // Basic validation
           const validProducts = parsedData.filter(p => p.name && p.price && p.category && p.imageUrls && p.id);
           setSuggestedProducts(validProducts);
       } else {
@@ -210,7 +126,7 @@ const DashboardPage: React.FC = () => {
 
   const handleAcceptSuggestions = (suggestions: Product[]) => {
     addProducts(suggestions);
-    showToast(`${suggestions.length} new products have been added!`, 'success');
+    alert(`${suggestions.length} new products have been added to 'Latest Arrivals'!`);
     setIsModalOpen(false);
   };
 
@@ -229,50 +145,52 @@ const DashboardPage: React.FC = () => {
       <div className="space-y-6">
         <h1 className="text-3xl font-bold text-primary-dark dark:text-white">Admin Dashboard</h1>
         
-        <SalesAnalyticsCard orders={orders} />
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>AI-Powered Insights</CardTitle>
+            <CardDescription>
+              Use AI to optimize your product listings and keep your store fresh.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <p className="text-gray-600 dark:text-gray-300">Get new product suggestions for the "Latest Arrivals" section.</p>
+              <Button onClick={handleAIRefresh} disabled={isLoading}>
+                {isLoading ? <Icons.RefreshCcw className="mr-2 h-4 w-4 animate-spin" /> : <Icons.RefreshCcw className="mr-2 h-4 w-4" />}
+                {isLoading ? 'Generating...' : 'Refresh with AI'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Quick Stats</CardTitle>
-                 <CardDescription>An overview of your store's activity.</CardDescription>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <div className="space-y-1">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Revenue</p>
-                    <p className="text-2xl font-bold">Ksh {totalRevenue.toLocaleString()}</p>
-                 </div>
-                 <div className="space-y-1">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Orders</p>
-                    <p className="text-2xl font-bold">{orders.length}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{newOrdersToday} new orders today</p>
-                 </div>
-                 <div className="space-y-1">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Products in Store</p>
-                    <p className="text-2xl font-bold">{products.length}</p>
-                 </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Categories</p>
-                    <p className="text-2xl font-bold">{categories.length}</p>
-                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>AI-Powered Insights</CardTitle>
-                <CardDescription>
-                  Use AI to optimize your product listings and keep your store fresh.
-                </CardDescription>
+                <CardTitle>Total Revenue</CardTitle>
+                 <CardDescription>From delivered orders</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <p className="text-gray-600 dark:text-gray-300 flex-1">Get new product suggestions for your inventory.</p>
-                  <Button onClick={handleAIRefresh} disabled={isLoading} className="w-full sm:w-auto">
-                    {isLoading ? <Icons.RefreshCcw className="mr-2 h-4 w-4 animate-spin" /> : <Icons.Bot className="mr-2 h-4 w-4" />}
-                    {isLoading ? 'Generating...' : 'Suggest Products'}
-                  </Button>
-                </div>
+                <p className="text-3xl font-bold">Ksh {totalRevenue.toLocaleString()}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Total Orders</CardTitle>
+                <CardDescription>All-time orders</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{orders.length}</p>
+                 <p className="text-sm text-gray-500 dark:text-gray-400">{newOrdersToday} new orders today</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Products in Store</CardTitle>
+                <CardDescription>Total sellable products</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{products.length}</p>
+                 <p className="text-sm text-gray-500 dark:text-gray-400">{categories.length} categories</p>
               </CardContent>
             </Card>
         </div>
