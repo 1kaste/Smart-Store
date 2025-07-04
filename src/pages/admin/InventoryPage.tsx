@@ -1,55 +1,18 @@
 
-import React, { useState, useMemo } from 'react';
-import { Product, Category, Order } from '../../data/mock-data';
+
+import React, { useState } from 'react';
+import { Product, Category } from '../../src/data/mock-data';
 import Button from '../../components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Icons } from '../../components/icons';
-import Modal from '../../components/ui/Modal';
+import Modal from '../../src/components/ui/Modal';
 import Input from '../../components/ui/Input';
-import { useData } from '../../contexts/DataContext';
-import { useNotification } from '../../contexts/NotificationContext';
-import Textarea from '../../components/ui/Textarea';
-
-const ConfirmationModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  description: string;
-}> = ({ isOpen, onClose, onConfirm, title, description }) => (
-  <Modal isOpen={isOpen} onClose={onClose}>
-    <div className="sm:flex sm:items-start">
-        <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-            <Icons.Trash2 className="h-6 w-6 text-red-600" aria-hidden="true" />
-        </div>
-        <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-            <h3 className="text-lg font-semibold leading-6 text-gray-900 dark:text-white" id="modal-title">
-                {title}
-            </h3>
-            <div className="mt-2">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                {description}
-                </p>
-            </div>
-        </div>
-    </div>
-    <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
-      <Button variant="destructive" onClick={onConfirm}>
-        Remove
-      </Button>
-      <Button variant="ghost" onClick={onClose}>
-        Cancel
-      </Button>
-    </div>
-  </Modal>
-);
-
+import { useData } from '../../src/contexts/DataContext';
 
 const InventoryPage: React.FC = () => {
   const { 
     products, 
     categories, 
-    orders,
     addProduct, 
     updateProduct, 
     deleteProduct,
@@ -57,13 +20,10 @@ const InventoryPage: React.FC = () => {
     updateCategory,
     deleteCategory,
   } = useData();
-  const { showToast } = useNotification();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'product' | 'category' | null>(null);
   const [currentItem, setCurrentItem] = useState<Product | Category | null>(null);
-
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', description: '', onConfirm: () => {} });
 
   const openModal = (type: 'product' | 'category', item: Product | Category | null = null) => {
     setModalType(type);
@@ -75,16 +35,13 @@ const InventoryPage: React.FC = () => {
     setIsModalOpen(false);
     setModalType(null);
     setCurrentItem(null);
-    setConfirmModal(prev => ({...prev, isOpen: false}));
   };
 
   const handleProductSave = (product: Product) => {
     if (currentItem && 'stock' in currentItem) {
       updateProduct(product);
-      showToast('Product updated successfully!', 'success');
     } else {
       addProduct(product);
-      showToast('Product added successfully!', 'success');
     }
     closeModal();
   };
@@ -92,30 +49,21 @@ const InventoryPage: React.FC = () => {
   const handleCategorySave = (category: Category) => {
     if (currentItem) {
       updateCategory(category);
-       showToast('Category updated successfully!', 'success');
     } else {
       addCategory({ ...category, imageUrl: 'https://picsum.photos/seed/newcat/400/400' });
-       showToast('Category added successfully!', 'success');
     }
     closeModal();
   };
 
-  const handleRemoveRequest = (type: 'product' | 'category', item: Product | Category) => {
-    setConfirmModal({
-        isOpen: true,
-        title: `Remove ${item.name}`,
-        description: `Are you sure you want to remove this ${type}? This action cannot be undone.`,
-        onConfirm: () => {
-            if (type === 'product') {
-                deleteProduct(item.id);
-            } else {
-                deleteCategory(item.id);
-            }
-            showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} removed successfully.`, 'success');
-            closeModal();
+  const handleDelete = (type: 'product' | 'category', id: string) => {
+    if(window.confirm('Are you sure you want to delete this item?')) {
+        if (type === 'product') {
+            deleteProduct(id);
+        } else {
+            deleteCategory(id);
         }
-    });
-  };
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -123,37 +71,29 @@ const InventoryPage: React.FC = () => {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Manage Products</CardTitle>
-            <CardDescription>Add, edit, or remove products from your store.</CardDescription>
-          </div>
+          <CardTitle>Manage Products</CardTitle>
           <Button onClick={() => openModal('product')}>
             <Icons.PlusCircle className="mr-2 h-4 w-4" />
             Add Product
           </Button>
         </CardHeader>
         <CardContent>
-          <ProductTable products={products} orders={orders} onEdit={(p) => openModal('product', p)} onRemove={(p) => handleRemoveRequest('product', p)} />
+          <ProductTable products={products} onEdit={(p) => openModal('product', p)} onDelete={(id) => handleDelete('product', id)} />
         </CardContent>
       </Card>
       
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Manage Categories</CardTitle>
-            <CardDescription>Add, edit, or remove product categories.</CardDescription>
-          </div>
+          <CardTitle>Manage Categories</CardTitle>
            <Button onClick={() => openModal('category')}>
             <Icons.PlusCircle className="mr-2 h-4 w-4" />
             Add Category
           </Button>
         </CardHeader>
         <CardContent>
-          <CategoryTable categories={categories} products={products} onEdit={(c) => openModal('category', c)} onRemove={(c) => handleRemoveRequest('category', c)} />
+          <CategoryTable categories={categories} onEdit={(c) => openModal('category', c)} onDelete={(id) => handleDelete('category', id)} />
         </CardContent>
       </Card>
-
-      <ConfirmationModal {...confirmModal} onClose={closeModal} />
 
       {isModalOpen && (
         <Modal isOpen={isModalOpen} onClose={closeModal}>
@@ -167,92 +107,62 @@ const InventoryPage: React.FC = () => {
 
 // --- Sub-components for Inventory Page ---
 
-const ProductTable: React.FC<{ products: Product[], orders: Order[], onEdit: (p: Product) => void, onRemove: (p: Product) => void }> = ({ products, orders, onEdit, onRemove }) => {
-    const productsInOrders = useMemo(() => {
-        const ids = new Set<string>();
-        orders.forEach(o => o.items.forEach(item => ids.add(item.productId)));
-        return ids;
-    }, [orders]);
+const ProductTable: React.FC<{ products: Product[], onEdit: (p: Product) => void, onDelete: (id: string) => void }> = ({ products, onEdit, onDelete }) => (
+  <div className="overflow-x-auto">
+    <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+      <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+        <tr>
+          <th scope="col" className="px-6 py-3">Product Name</th>
+          <th scope="col" className="px-6 py-3">Category</th>
+          <th scope="col" className="px-6 py-3">Stock</th>
+          <th scope="col" className="px-6 py-3">Price</th>
+          <th scope="col" className="px-6 py-3 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {products.map(p => (
+          <tr key={p.id} className="bg-white border-b dark:bg-primary-dark dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+            <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{p.name}</td>
+            <td className="px-6 py-4">{p.category}</td>
+            <td className={`px-6 py-4 font-bold ${p.stock < 10 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>{p.stock}</td>
+            <td className="px-6 py-4">Ksh {p.price.toLocaleString()}</td>
+            <td className="px-6 py-4 text-right space-x-2">
+              <Button size="icon" variant="ghost" onClick={() => onEdit(p)}><Icons.Edit className="h-4 w-4" /></Button>
+              <Button size="icon" variant="ghost" onClick={() => onDelete(p.id)}><Icons.Trash2 className="h-4 w-4 text-red-500" /></Button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
 
-    return (
-        <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                <th scope="col" className="px-6 py-3">Product Name</th>
-                <th scope="col" className="px-6 py-3">Category</th>
-                <th scope="col" className="px-6 py-3">Stock</th>
-                <th scope="col" className="px-6 py-3">Price</th>
-                <th scope="col" className="px-6 py-3 text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {products.map(p => {
-                    const isInUse = productsInOrders.has(p.id);
-                    return (
-                        <tr key={p.id} className="bg-white border-b dark:bg-primary-dark dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                            <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{p.name}</td>
-                            <td className="px-6 py-4">{p.category}</td>
-                            <td className={`px-6 py-4 font-bold ${p.stock < 10 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>{p.stock}</td>
-                            <td className="px-6 py-4">Ksh {p.price.toLocaleString()}</td>
-                            <td className="px-6 py-4 text-right space-x-2">
-                            <Button size="icon" variant="ghost" onClick={() => onEdit(p)}><Icons.Edit className="h-4 w-4" /></Button>
-                            <div className="relative inline-block" title={isInUse ? 'Cannot remove product that is part of an order.' : 'Remove product'}>
-                                <Button size="icon" variant="ghost" onClick={() => onRemove(p)} disabled={isInUse}>
-                                    <Icons.Trash2 className={`h-4 w-4 transition-colors ${isInUse ? 'text-gray-400 cursor-not-allowed' : 'text-red-500'}`} />
-                                </Button>
-                            </div>
-                            </td>
-                        </tr>
-                    );
-                })}
-            </tbody>
-            </table>
-        </div>
-    );
-};
-
-const CategoryTable: React.FC<{ categories: Category[], products: Product[], onEdit: (c: Category) => void, onRemove: (c: Category) => void }> = ({ categories, products, onEdit, onRemove }) => {
-    const productsInCategory = useMemo(() => {
-        const categoryNames = new Set<string>();
-        products.forEach(p => categoryNames.add(p.category));
-        return categoryNames;
-    }, [products]);
-
-    return (
-        <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-            <th scope="col" className="px-6 py-3">Category Name</th>
-            <th scope="col" className="px-6 py-3 text-right">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {categories.map(c => {
-                const isInUse = productsInCategory.has(c.name);
-                return (
-                    <tr key={c.id} className="bg-white border-b dark:bg-primary-dark dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{c.name}</td>
-                        <td className="px-6 py-4 text-right space-x-2">
-                        <Button size="icon" variant="ghost" onClick={() => onEdit(c)}><Icons.Edit className="h-4 w-4" /></Button>
-                        <div className="relative inline-block" title={isInUse ? "Cannot remove category with assigned products." : "Remove category"}>
-                            <Button size="icon" variant="ghost" onClick={() => onRemove(c)} disabled={isInUse}>
-                                <Icons.Trash2 className={`h-4 w-4 transition-colors ${isInUse ? 'text-gray-400 cursor-not-allowed' : 'text-red-500'}`} />
-                            </Button>
-                        </div>
-                        </td>
-                    </tr>
-                );
-            })}
-        </tbody>
-        </table>
-    </div>
-    );
-};
+const CategoryTable: React.FC<{ categories: Category[], onEdit: (c: Category) => void, onDelete: (id: string) => void }> = ({ categories, onEdit, onDelete }) => (
+    <div className="overflow-x-auto">
+    <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+      <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+        <tr>
+          <th scope="col" className="px-6 py-3">Category Name</th>
+          <th scope="col" className="px-6 py-3 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {categories.map(c => (
+          <tr key={c.id} className="bg-white border-b dark:bg-primary-dark dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+            <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{c.name}</td>
+            <td className="px-6 py-4 text-right space-x-2">
+              <Button size="icon" variant="ghost" onClick={() => onEdit(c)}><Icons.Edit className="h-4 w-4" /></Button>
+              <Button size="icon" variant="ghost" onClick={() => onDelete(c.id)}><Icons.Trash2 className="h-4 w-4 text-red-500" /></Button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
 
 const ProductForm: React.FC<{ product: Product | null, onSave: (p: Product) => void, onCancel: () => void, categories: Category[] }> = ({ product, onSave, onCancel, categories }) => {
-  const [formData, setFormData] = useState<Omit<Product, 'id'>>(product || { name: '', price: 0, imageUrls: [], category: '', colors: [], stock: 0, description: '' });
+  const [formData, setFormData] = useState<Product>(product || { id: '', name: '', price: 0, imageUrls: [], category: '', colors: [], stock: 0, description: '' });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -269,7 +179,7 @@ const ProductForm: React.FC<{ product: Product | null, onSave: (p: Product) => v
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({...(formData as Product), id: product?.id || ''});
+    onSave(formData);
   };
 
   return (
@@ -284,7 +194,7 @@ const ProductForm: React.FC<{ product: Product | null, onSave: (p: Product) => v
       
       <div>
         <label className="font-medium">Category</label>
-        <select name="category" value={formData.category} onChange={handleChange} required className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+        <select name="category" value={formData.category} onChange={handleChange} required className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:bg-gray-900/50 dark:border-gray-600 dark:text-white">
             <option value="">Select a category</option>
             {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
         </select>
@@ -298,12 +208,12 @@ const ProductForm: React.FC<{ product: Product | null, onSave: (p: Product) => v
 
        <div>
         <label className="font-medium">Description</label>
-        <Textarea name="description" value={formData.description || ''} onChange={handleChange} required rows={4} />
+        <textarea name="description" value={formData.description} onChange={handleChange} required rows={4} className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:bg-gray-900/50 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"/>
        </div>
 
        <div>
         <label className="font-medium">Image URLs</label>
-        <Textarea name="imageUrls" value={formData.imageUrls.join(',\n')} onChange={handleChange} required rows={4} />
+        <textarea name="imageUrls" value={formData.imageUrls.join(',\n')} onChange={handleChange} required rows={4} className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:bg-gray-900/50 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"/>
         <p className="text-xs text-gray-500 mt-1">Separate URLs with a comma. The first URL will be the main image.</p>
        </div>
 
