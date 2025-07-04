@@ -1,22 +1,20 @@
+
 import React from 'react';
 import { Icons } from '../components/icons';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { Card, CardContent } from '../components/ui/Card';
-import { useData } from '../contexts/DataContext';
-import { useNotification } from '../contexts/NotificationContext';
-import Textarea from '../components/ui/Textarea';
+import { useData } from '../src/contexts/DataContext';
 
 const ContactPage: React.FC = () => {
     const { settings } = useData();
-    const { showToast } = useNotification();
     
     const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const data = Object.fromEntries(formData.entries());
         console.log("Contact form submitted:", data);
-        showToast("Message sent! We'll get back to you soon.", 'success');
+        alert("Thank you for your message! We'll get back to you soon.");
         e.currentTarget.reset();
     };
 
@@ -44,9 +42,10 @@ const ContactPage: React.FC = () => {
                                 </div>
                                  <div className="space-y-2">
                                     <label htmlFor="message" className="text-sm font-medium dark:text-gray-300">Message</label>
-                                    <Textarea id="message" name="message" rows={5} required
+                                    <textarea id="message" name="message" rows={5} required
+                                        className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:bg-gray-900/50 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                                         placeholder="How can we help?"
-                                    />
+                                    ></textarea>
                                 </div>
                                 <Button type="submit" variant="accent" className="w-full">Send Message</Button>
                             </form>
