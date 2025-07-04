@@ -1,13 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
 import { Icons } from '../components/icons';
-import { useAuth } from '../contexts/AuthContext';
-import { useData } from '../contexts/DataContext';
-import ThemeToggleButton from '../components/ThemeToggleButton';
-import { useNotification } from '../contexts/NotificationContext';
+import { useAuth } from '../src/contexts/AuthContext';
+import { useData } from '../src/contexts/DataContext';
 
 const CustomerAuthPage: React.FC = () => {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -19,17 +18,6 @@ const CustomerAuthPage: React.FC = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-background-dark p-4">
-        <div className="absolute top-4 left-4">
-            <Button asChild variant="outline">
-                <Link to="/">
-                <Icons.ChevronLeft className="mr-2 h-4 w-4" />
-                Back to Store
-                </Link>
-            </Button>
-        </div>
-        <div className="absolute top-4 right-4">
-            <ThemeToggleButton />
-        </div>
         <div className="w-full max-w-md">
             <Link to="/" className="flex items-center gap-2 justify-center mb-6">
                 <Icons.Store className="h-8 w-8 text-primary-dark dark:text-white" />
@@ -39,13 +27,13 @@ const CustomerAuthPage: React.FC = () => {
                 <CardHeader>
                     <div className="flex border-b mb-4">
                         <button 
-                            className={`flex-1 p-3 font-semibold ${authMode === 'login' ? 'border-b-2 border-accent-teal text-accent-teal' : 'text-gray-500'}`}
+                            className={`flex-1 p-3 font-semibold ${authMode === 'login' ? 'border-b-2 border-accent text-accent' : 'text-gray-500'}`}
                             onClick={() => setAuthMode('login')}
                         >
                             Login
                         </button>
                         <button 
-                             className={`flex-1 p-3 font-semibold ${authMode === 'signup' ? 'border-b-2 border-accent-teal text-accent-teal' : 'text-gray-500'}`}
+                             className={`flex-1 p-3 font-semibold ${authMode === 'signup' ? 'border-b-2 border-accent text-accent' : 'text-gray-500'}`}
                              onClick={() => setAuthMode('signup')}
                         >
                             Sign Up
@@ -58,7 +46,7 @@ const CustomerAuthPage: React.FC = () => {
                 {authMode === 'login' ? <LoginForm /> : <SignUpForm />}
             
                  <p className="text-center text-xs text-gray-500 mt-4 mb-2 px-6">
-                    Are you a store owner? <Link to="/admin/login" className="font-semibold text-accent-teal hover:underline">Admin Login</Link>
+                    Are you a store owner? <Link to="/admin/login" className="font-semibold text-accent hover:underline">Admin Login</Link>
                 </p>
             </Card>
         </div>
@@ -69,14 +57,13 @@ const CustomerAuthPage: React.FC = () => {
 const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { showToast } = useNotification();
   const [searchParams] = useSearchParams();
   
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Customer login attempt...');
     login();
-    showToast('Login successful! Welcome back!', 'success');
+    alert('Login successful!');
     const redirectPath = searchParams.get('redirect');
     navigate(redirectPath || '/');
   };
@@ -105,14 +92,13 @@ const LoginForm: React.FC = () => {
 const SignUpForm: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { showToast } = useNotification();
   const [searchParams] = useSearchParams();
 
   const handleSignUp = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Customer sign up attempt...');
     login();
-    showToast('Sign up successful! Welcome!', 'success');
+    alert('Sign up successful! Welcome!');
     const redirectPath = searchParams.get('redirect');
     navigate(redirectPath || '/');
   };
