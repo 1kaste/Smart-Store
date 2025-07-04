@@ -15,7 +15,8 @@ const UserLayout: React.FC = () => {
 
     useEffect(() => {
         document.documentElement.style.setProperty('--color-accent', settings.accentColor);
-    }, [settings.accentColor]);
+        document.documentElement.style.setProperty('--color-accent-text', settings.accentTextColor);
+    }, [settings.accentColor, settings.accentTextColor]);
 
     useEffect(() => {
         if (!location.pathname.startsWith('/admin') && location.pathname !== '/login') {
