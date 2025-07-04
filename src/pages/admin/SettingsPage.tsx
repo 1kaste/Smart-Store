@@ -1,47 +1,39 @@
 
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/Card';
-import { StoreSettings, SocialLink, QuickLink, PaymentMethod } from '../../data/mock-data';
+import { StoreSettings, SocialLink, QuickLink, PaymentMethod } from '../../src/data/mock-data';
 import { Icons } from '../../components/icons';
-import Modal from '../../components/ui/Modal';
-import { useData } from '../../contexts/DataContext';
-import { useNotification } from '../../contexts/NotificationContext';
+import Modal from '../../src/components/ui/Modal';
+import { useData } from '../../src/contexts/DataContext';
 
-const ConfirmationModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  description: string;
-}> = ({ isOpen, onClose, onConfirm, title, description }) => (
-  <Modal isOpen={isOpen} onClose={onClose}>
-    <div className="sm:flex sm:items-start">
-        <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-            <Icons.Trash2 className="h-6 w-6 text-red-600" aria-hidden="true" />
-        </div>
-        <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-            <h3 className="text-lg font-semibold leading-6 text-gray-900 dark:text-white" id="modal-title">
-                {title}
-            </h3>
-            <div className="mt-2">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                {description}
-                </p>
+const BrandingPreview: React.FC<{ settings: StoreSettings }> = ({ settings }) => {
+    const previewStyle = {
+        '--color-accent': settings.accentColor,
+        '--color-accent-text': settings.accentTextColor,
+    } as React.CSSProperties;
+
+    return (
+        <div style={previewStyle}>
+            <h4 className="text-sm font-semibold mb-2 text-primary-dark dark:text-gray-300">Live Preview</h4>
+            <div className="rounded-lg border dark:border-gray-700 p-4 space-y-4 bg-gray-50 dark:bg-gray-900/30">
+                <div className="flex flex-wrap items-center gap-4">
+                    <Button variant="accent">Accent Button</Button>
+                    <a href="#" onClick={(e) => e.preventDefault()} className="text-sm font-medium text-accent hover:underline">
+                        An Accent Link
+                    </a>
+                </div>
+                <div>
+                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Input Field</label>
+                     <Input placeholder="Focus to see accent color" />
+                </div>
             </div>
         </div>
-    </div>
-    <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
-      <Button variant="destructive" onClick={onConfirm}>
-        Remove
-      </Button>
-      <Button variant="ghost" onClick={onClose}>
-        Cancel
-      </Button>
-    </div>
-  </Modal>
-);
+    );
+};
+
 
 const HeroPreview: React.FC<{ settings: StoreSettings }> = ({ settings }) => {
     const heroStyle = settings.heroImageUrl
@@ -81,69 +73,22 @@ const HeroPreview: React.FC<{ settings: StoreSettings }> = ({ settings }) => {
     );
 };
 
-const BrandingPreview: React.FC<{ settings: StoreSettings }> = ({ settings }) => {
-    const previewStyle = {
-        '--color-accent': settings.accentColor,
-        '--color-accent-text': settings.accentTextColor,
-    } as React.CSSProperties;
-
-    return (
-        <div style={previewStyle}>
-            <h4 className="text-sm font-semibold mb-2 text-primary-dark dark:text-gray-300">Live Preview</h4>
-            <div className="rounded-lg border dark:border-gray-700 p-4 space-y-4 bg-gray-50 dark:bg-gray-900/30">
-                <div className="flex flex-wrap items-center gap-4">
-                    <Button variant="accent">Accent Button</Button>
-                    <a href="#" onClick={(e) => e.preventDefault()} className="text-sm font-medium text-accent hover:underline">
-                        An Accent Link
-                    </a>
-                </div>
-                <div>
-                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Input Field</label>
-                     <Input placeholder="Focus to see accent color" />
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
 const SettingsPage: React.FC = () => {
   const { settings, updateSettings } = useData();
-  const { showToast } = useNotification();
   const [localSettings, setLocalSettings] = useState<StoreSettings>(settings);
-  const [hasChanges, setHasChanges] = useState(false);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'social' | 'quickLink' | 'paymentMethod' | null>(null);
   const [currentItem, setCurrentItem] = useState<SocialLink | QuickLink | PaymentMethod | null>(null);
-  
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', description: '', onConfirm: () => {} });
-
-  useEffect(() => {
-    setHasChanges(JSON.stringify(settings) !== JSON.stringify(localSettings));
-  }, [settings, localSettings]);
 
   const handleGeneralChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setLocalSettings(prev => ({...prev, [id]: value }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setLocalSettings(prev => ({ ...prev, logoUrl: reader.result as string }));
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSave = () => {
     updateSettings(localSettings);
-    showToast('Settings saved successfully!', 'success');
+    alert('Settings saved successfully!');
   };
 
   const openModal = (type: 'social' | 'quickLink' | 'paymentMethod', item: SocialLink | QuickLink | PaymentMethod | null = null) => {
@@ -156,40 +101,53 @@ const SettingsPage: React.FC = () => {
     setIsModalOpen(false);
     setModalType(null);
     setCurrentItem(null);
-    setConfirmModal({ ...confirmModal, isOpen: false });
   };
 
-  const handleItemSave = (
-    type: 'social' | 'quickLink' | 'paymentMethod',
-    itemData: SocialLink | QuickLink | PaymentMethod
-  ) => {
-    const listName = `${type}s` as 'socials' | 'quickLinks' | 'paymentMethods';
-    const list = localSettings[listName] as any[];
-
-    if (itemData.id) { // Editing existing item
-      setLocalSettings(prev => ({ ...prev, [listName]: list.map(item => item.id === itemData.id ? itemData : item) }));
-    } else { // Adding new item
-      const newItem = { ...itemData, id: `${type.slice(0, 3)}${Date.now()}` };
-      setLocalSettings(prev => ({ ...prev, [listName]: [...list, newItem] }));
+  const handleSocialSave = (social: SocialLink) => {
+    const list = localSettings.socials || [];
+    const existing = list.find(s => s.id === social.id);
+    if (existing) {
+        setLocalSettings(prev => ({...prev, socials: list.map(s => s.id === social.id ? social : s)}));
+    } else {
+        setLocalSettings(prev => ({...prev, socials: [...list, { ...social, id: `soc${Date.now()}` }]}));
+    }
+    closeModal();
+  };
+  
+  const handleQuickLinkSave = (link: QuickLink) => {
+    const list = localSettings.quickLinks || [];
+    const existing = list.find(l => l.id === link.id);
+    if (existing) {
+        setLocalSettings(prev => ({...prev, quickLinks: list.map(l => l.id === link.id ? link : l)}));
+    } else {
+        setLocalSettings(prev => ({...prev, quickLinks: [...list, { ...link, id: `ql${Date.now()}` }]}));
     }
     closeModal();
   };
 
-  const handleRemoveRequest = (type: 'social' | 'quickLink' | 'paymentMethod', item: {id: string; name?: string; text?: string}) => {
-    const listName = `${type}s` as 'socials' | 'quickLinks' | 'paymentMethods';
-    const itemName = item.name || item.text || 'item';
-    
-    setConfirmModal({
-        isOpen: true,
-        title: `Remove ${itemName}`,
-        description: `Are you sure you want to remove this ${type}? This change will be saved when you click "Save All Changes".`,
-        onConfirm: () => {
-            const list = localSettings[listName] as any[];
-            setLocalSettings(prev => ({...prev, [listName]: list.filter(s => s.id !== item.id)}));
-            closeModal();
-        }
-    });
+  const handlePaymentMethodSave = (method: PaymentMethod) => {
+    const list = localSettings.paymentMethods || [];
+    const existing = list.find(p => p.id === method.id);
+    if (existing) {
+        setLocalSettings(prev => ({...prev, paymentMethods: list.map(p => p.id === method.id ? method : p)}));
+    } else {
+        setLocalSettings(prev => ({...prev, paymentMethods: [...list, { ...method, id: `pay${Date.now()}` }]}));
+    }
+    closeModal();
   };
+
+  const handleDelete = (type: 'social' | 'quickLink' | 'paymentMethod', id: string) => {
+    if (window.confirm('Are you sure you want to delete this item?')) {
+        if (type === 'social') {
+            setLocalSettings(prev => ({...prev, socials: prev.socials.filter(s => s.id !== id)}));
+        } else if (type === 'quickLink') {
+            setLocalSettings(prev => ({...prev, quickLinks: prev.quickLinks.filter(l => l.id !== id)}));
+        } else if (type === 'paymentMethod') {
+            setLocalSettings(prev => ({...prev, paymentMethods: prev.paymentMethods.filter(p => p.id !== id)}));
+        }
+    }
+  };
+
 
   return (
     <div className="space-y-8">
@@ -198,9 +156,7 @@ const SettingsPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-primary-dark dark:text-white">Store Settings</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your store's appearance and details.</p>
         </div>
-        <Button onClick={handleSave} disabled={!hasChanges}>
-            {hasChanges ? 'Save All Changes' : 'All Changes Saved'}
-        </Button>
+        <Button onClick={handleSave}>Save All Changes</Button>
       </div>
 
       <Card>
@@ -215,6 +171,10 @@ const SettingsPage: React.FC = () => {
               <Input id="shopName" value={localSettings.shopName} onChange={handleGeneralChange} />
             </div>
             <div className="space-y-2">
+              <label htmlFor="logoUrl" className="font-medium text-gray-800 dark:text-gray-300">Logo URL</label>
+              <Input id="logoUrl" value={localSettings.logoUrl} onChange={handleGeneralChange} />
+            </div>
+            <div className="space-y-2">
               <label htmlFor="contactEmail" className="font-medium text-gray-800 dark:text-gray-300">Contact Email</label>
               <Input id="contactEmail" type="email" value={localSettings.contactEmail} onChange={handleGeneralChange} />
             </div>
@@ -222,38 +182,20 @@ const SettingsPage: React.FC = () => {
               <label htmlFor="location" className="font-medium text-gray-800 dark:text-gray-300">Location / Address</label>
               <Input id="location" value={localSettings.location} onChange={handleGeneralChange} />
             </div>
-             <div className="space-y-2">
+             <div className="space-y-2 md:col-span-2">
               <label htmlFor="whatsappNumber" className="font-medium text-gray-800 dark:text-gray-300">WhatsApp Number</label>
               <Input id="whatsappNumber" placeholder="+254712345678" value={localSettings.whatsappNumber} onChange={handleGeneralChange} />
             </div>
           </div>
         </CardContent>
       </Card>
-
+      
       <Card>
         <CardHeader>
             <CardTitle>Store Branding</CardTitle>
             <CardDescription>Customize your store's logo and theme color.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-            <div className="space-y-2">
-                <label className="font-medium text-gray-800 dark:text-gray-300">Store Logo</label>
-                <div className="flex items-center gap-4">
-                    {localSettings.logoUrl && (
-                        <img src={localSettings.logoUrl} alt="Logo Preview" className="h-16 w-16 rounded-md object-contain bg-gray-100 dark:bg-gray-800 p-1" />
-                    )}
-                    <div className="flex-grow space-y-2">
-                        <Input id="logoUrl" value={localSettings.logoUrl} onChange={handleGeneralChange} placeholder="Enter image URL" />
-                        <div>
-                            <label htmlFor="logoUpload" className="cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-primary-dark text-white hover:bg-primary-dark/90 dark:bg-gray-200 dark:text-primary-dark dark:hover:bg-gray-200/90">
-                                <Icons.Upload className="mr-2 h-4 w-4" /> Upload Logo
-                            </label>
-                            <input id="logoUpload" type="file" className="hidden" accept="image/png, image/jpeg, image/svg+xml" onChange={handleImageUpload} />
-                        </div>
-                    </div>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Upload a logo or paste an image URL. Recommended size: 256x256px.</p>
-            </div>
             <div className="space-y-2">
                 <label htmlFor="accentColor" className="font-medium text-gray-800 dark:text-gray-300">Accent Color</label>
                 <div className="flex items-center gap-2">
@@ -273,7 +215,7 @@ const SettingsPage: React.FC = () => {
             <BrandingPreview settings={localSettings} />
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Hero Section Customization</CardTitle>
@@ -305,17 +247,14 @@ const SettingsPage: React.FC = () => {
 
       <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Social Media Links</CardTitle>
-                <CardDescription>Add links to your social media profiles.</CardDescription>
-              </div>
+              <CardTitle>Social Media Links</CardTitle>
               <Button onClick={() => openModal('social')}><Icons.PlusCircle className="mr-2 h-4 w-4" /> Add Social</Button>
           </CardHeader>
           <CardContent>
               <CrudTable 
                 items={localSettings.socials}
                 onEdit={(item) => openModal('social', item as SocialLink)}
-                onDelete={(item) => handleRemoveRequest('social', item)}
+                onDelete={(id) => handleDelete('social', id)}
                 columns={[
                     { key: 'icon', header: 'Icon', render: (item) => { const Icon = Icons[(item as SocialLink).icon]; return <Icon className="h-5 w-5" />; }},
                     { key: 'name', header: 'Name' },
@@ -327,17 +266,14 @@ const SettingsPage: React.FC = () => {
       
        <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Footer Quick Links</CardTitle>
-                <CardDescription>Manage the links that appear in your store's footer.</CardDescription>
-              </div>
+              <CardTitle>Footer Quick Links</CardTitle>
               <Button onClick={() => openModal('quickLink')}><Icons.PlusCircle className="mr-2 h-4 w-4" /> Add Link</Button>
           </CardHeader>
           <CardContent>
               <CrudTable 
                 items={localSettings.quickLinks}
                 onEdit={(item) => openModal('quickLink', item as QuickLink)}
-                onDelete={(item) => handleRemoveRequest('quickLink', item)}
+                onDelete={(id) => handleDelete('quickLink', id)}
                 columns={[
                     { key: 'text', header: 'Link Text' },
                     { key: 'url', header: 'URL' },
@@ -348,17 +284,14 @@ const SettingsPage: React.FC = () => {
 
       <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                    <CardTitle>Payment Methods</CardTitle>
-                    <CardDescription>Manage the payment options available at checkout.</CardDescription>
-                </div>
+                <CardTitle>Payment Methods</CardTitle>
                 <Button onClick={() => openModal('paymentMethod')}><Icons.PlusCircle className="mr-2 h-4 w-4" /> Add Method</Button>
             </CardHeader>
             <CardContent>
                 <CrudTable 
                     items={localSettings.paymentMethods || []}
                     onEdit={(item) => openModal('paymentMethod', item as PaymentMethod)}
-                    onDelete={(item) => handleRemoveRequest('paymentMethod', item)}
+                    onDelete={(id) => handleDelete('paymentMethod', id)}
                     columns={[
                         { key: 'logo', header: 'Logo', render: (item) => <img src={(item as PaymentMethod).logoUrl} alt={(item as PaymentMethod).name} className="h-8 bg-white p-1 rounded-md object-contain"/> },
                         { key: 'name', header: 'Name' },
@@ -368,13 +301,11 @@ const SettingsPage: React.FC = () => {
             </CardContent>
         </Card>
 
-      <ConfirmationModal {...confirmModal} onClose={closeModal} />
-      
       {isModalOpen && (
         <Modal isOpen={isModalOpen} onClose={closeModal}>
-          {modalType === 'social' && <SocialForm social={currentItem as SocialLink | null} onSave={(data) => handleItemSave('social', data)} onCancel={closeModal} />}
-          {modalType === 'quickLink' && <QuickLinkForm link={currentItem as QuickLink | null} onSave={(data) => handleItemSave('quickLink', data)} onCancel={closeModal} />}
-          {modalType === 'paymentMethod' && <PaymentMethodForm method={currentItem as PaymentMethod | null} onSave={(data) => handleItemSave('paymentMethod', data)} onCancel={closeModal} />}
+          {modalType === 'social' && <SocialForm social={currentItem as SocialLink | null} onSave={handleSocialSave} onCancel={closeModal} />}
+          {modalType === 'quickLink' && <QuickLinkForm link={currentItem as QuickLink | null} onSave={handleQuickLinkSave} onCancel={closeModal} />}
+          {modalType === 'paymentMethod' && <PaymentMethodForm method={currentItem as PaymentMethod | null} onSave={handlePaymentMethodSave} onCancel={closeModal} />}
         </Modal>
       )}
 
@@ -383,7 +314,7 @@ const SettingsPage: React.FC = () => {
 };
 
 // Generic table for CRUD operations
-const CrudTable: React.FC<{ items: any[], onEdit: (item: any) => void, onDelete: (item: any) => void, columns: {key: string, header: string, render?: (item: any) => React.ReactNode}[] }> = ({ items, onEdit, onDelete, columns }) => (
+const CrudTable: React.FC<{ items: any[], onEdit: (item: any) => void, onDelete: (id: string) => void, columns: {key: string, header: string, render?: (item: any) => React.ReactNode}[] }> = ({ items, onEdit, onDelete, columns }) => (
     <div className="overflow-x-auto">
         <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -402,7 +333,7 @@ const CrudTable: React.FC<{ items: any[], onEdit: (item: any) => void, onDelete:
                         ))}
                         <td className="px-6 py-4 text-right space-x-2">
                             <Button size="icon" variant="ghost" onClick={() => onEdit(item)}><Icons.Edit className="h-4 w-4" /></Button>
-                            <Button size="icon" variant="ghost" onClick={() => onDelete(item)}><Icons.Trash2 className="h-4 w-4 text-red-500" /></Button>
+                            <Button size="icon" variant="ghost" onClick={() => onDelete(item.id)}><Icons.Trash2 className="h-4 w-4 text-red-500" /></Button>
                         </td>
                     </tr>
                 ))}
@@ -413,7 +344,7 @@ const CrudTable: React.FC<{ items: any[], onEdit: (item: any) => void, onDelete:
 
 // Form for Social Links Modal
 const SocialForm: React.FC<{ social: SocialLink | null, onSave: (s: SocialLink) => void, onCancel: () => void }> = ({ social, onSave, onCancel }) => {
-  const [formData, setFormData] = useState<Partial<SocialLink>>(social || { name: '', url: '', icon: 'Twitter' });
+  const [formData, setFormData] = useState<SocialLink>(social || { id: '', name: '', url: '', icon: 'Twitter' });
   const availableIcons = ['Twitter', 'Facebook', 'Instagram', 'Linkedin', 'Youtube'];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -423,7 +354,7 @@ const SocialForm: React.FC<{ social: SocialLink | null, onSave: (s: SocialLink) 
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData as SocialLink);
+    onSave(formData);
   };
 
   return (
@@ -433,7 +364,7 @@ const SocialForm: React.FC<{ social: SocialLink | null, onSave: (s: SocialLink) 
       <div><label>URL</label><Input name="url" type="url" value={formData.url} onChange={handleChange} required /></div>
       <div>
         <label>Icon</label>
-        <select name="icon" value={formData.icon} onChange={handleChange} required className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+        <select name="icon" value={formData.icon} onChange={handleChange} required className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:bg-gray-900/50 dark:border-gray-600 dark:text-white">
             {availableIcons.map(iconName => <option key={iconName} value={iconName}>{iconName}</option>)}
         </select>
       </div>
@@ -447,7 +378,7 @@ const SocialForm: React.FC<{ social: SocialLink | null, onSave: (s: SocialLink) 
 
 // Form for Quick Links Modal
 const QuickLinkForm: React.FC<{ link: QuickLink | null, onSave: (l: QuickLink) => void, onCancel: () => void }> = ({ link, onSave, onCancel }) => {
-  const [formData, setFormData] = useState<Partial<QuickLink>>(link || { text: '', url: '' });
+  const [formData, setFormData] = useState<QuickLink>(link || { id: '', text: '', url: '' });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -456,7 +387,7 @@ const QuickLinkForm: React.FC<{ link: QuickLink | null, onSave: (l: QuickLink) =
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData as QuickLink);
+    onSave(formData);
   };
 
   return (
@@ -474,7 +405,7 @@ const QuickLinkForm: React.FC<{ link: QuickLink | null, onSave: (l: QuickLink) =
 
 // Form for Payment Methods Modal
 const PaymentMethodForm: React.FC<{ method: PaymentMethod | null, onSave: (m: PaymentMethod) => void, onCancel: () => void }> = ({ method, onSave, onCancel }) => {
-  const [formData, setFormData] = useState<Partial<PaymentMethod>>(method || { name: '', details: '', logoUrl: '' });
+  const [formData, setFormData] = useState<PaymentMethod>(method || { id: '', name: '', details: '', logoUrl: '' });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -483,7 +414,7 @@ const PaymentMethodForm: React.FC<{ method: PaymentMethod | null, onSave: (m: Pa
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData as PaymentMethod);
+    onSave(formData);
   };
 
   return (
