@@ -1,12 +1,12 @@
+
 import React, { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import WhatsAppButton from '../components/WhatsAppButton';
 import AIAssistant from '../components/AIAssistant';
-import ToastContainer from '../components/ToastContainer';
-import { useData } from '../contexts/DataContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useData } from '../src/contexts/DataContext';
+import { useAuth } from '../src/contexts/AuthContext';
 
 const UserLayout: React.FC = () => {
     const { settings } = useData();
@@ -18,7 +18,7 @@ const UserLayout: React.FC = () => {
         document.documentElement.style.setProperty('--color-accent-text', settings.accentTextColor);
     }, [settings.accentColor, settings.accentTextColor]);
 
-    useEffect(() => {
+     useEffect(() => {
         if (!location.pathname.startsWith('/admin') && location.pathname !== '/login') {
             setLastUserPath(location.pathname + location.search + location.hash);
         }
@@ -42,7 +42,7 @@ const UserLayout: React.FC = () => {
         } else if (pageName === 'search') {
             title = `Search - ${baseTitle}`;
         } else {
-            const formattedPageName = pageName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const formattedPageName = pageName.charAt(0).toUpperCase() + pageName.slice(1);
             title = `${formattedPageName} - ${baseTitle}`;
         }
         document.title = title;
@@ -58,7 +58,6 @@ const UserLayout: React.FC = () => {
             <Footer />
             <WhatsAppButton />
             <AIAssistant />
-            <ToastContainer />
         </div>
     );
 };
