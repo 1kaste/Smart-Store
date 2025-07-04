@@ -78,6 +78,7 @@ export interface StoreSettings {
   paymentMethods: PaymentMethod[];
   whatsappNumber: string;
   accentColor: string;
+  accentTextColor: string;
 }
 
 
@@ -131,6 +132,7 @@ export const STORE_SETTINGS_DATA: StoreSettings = {
   heroImageUrl: 'https://images.unsplash.com/photo-1512499617640-b74ae3a79d37?q=80&w=2560&auto=format&fit=crop',
   heroTextColor: '#FFFFFF',
   accentColor: '#14B8A6',
+  accentTextColor: '#FFFFFF',
   socials: [
     { id: 'soc1', name: 'Twitter', url: 'https://twitter.com/simusmart', icon: 'Twitter' },
     { id: 'soc2', name: 'Facebook', url: 'https://facebook.com/simusmart', icon: 'Facebook' },
