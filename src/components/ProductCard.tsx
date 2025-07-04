@@ -1,9 +1,11 @@
+
+
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Product } from '../data/mock-data';
+import { Product } from '../src/data/mock-data';
 import { Card, CardContent, CardFooter } from './ui/Card';
 import Button from './ui/Button';
-import { useCart } from '../contexts/CartContext';
+import { useCart } from '../src/contexts/CartContext';
+import { Link } from 'react-router-dom';
 
 interface ProductCardProps {
     product: Product;
