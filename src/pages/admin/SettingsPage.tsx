@@ -84,6 +84,7 @@ const HeroPreview: React.FC<{ settings: StoreSettings }> = ({ settings }) => {
 const BrandingPreview: React.FC<{ settings: StoreSettings }> = ({ settings }) => {
     const previewStyle = {
         '--color-accent': settings.accentColor,
+        '--color-accent-text': settings.accentTextColor,
     } as React.CSSProperties;
 
     return (
@@ -260,6 +261,14 @@ const SettingsPage: React.FC = () => {
                     <Input type="text" value={localSettings.accentColor} onChange={handleGeneralChange} id="accentColor" className="w-28" />
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">This color will be used for buttons, links, and highlights across the store.</p>
+            </div>
+            <div className="space-y-2">
+                <label htmlFor="accentTextColor" className="font-medium text-gray-800 dark:text-gray-300">Accent Text Color</label>
+                <div className="flex items-center gap-2">
+                    <Input id="accentTextColor" type="color" value={localSettings.accentTextColor} onChange={handleGeneralChange} className="w-16 h-10 p-1" />
+                    <Input type="text" value={localSettings.accentTextColor} onChange={handleGeneralChange} id="accentTextColor" className="w-28" />
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">This color will be used for text on accent-colored elements for better visibility.</p>
             </div>
             <BrandingPreview settings={localSettings} />
         </CardContent>
