@@ -2,16 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useCart } from '../contexts/CartContext';
+import { useCart } from '../src/contexts/CartContext';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
-import { useData } from '../contexts/DataContext';
-import { Order, PaymentMethod } from '../data/mock-data';
+import { useData } from '../src/contexts/DataContext';
+import { Order, PaymentMethod } from '../src/data/mock-data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../components/ui/Card';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../src/contexts/AuthContext';
 import { Icons } from '../components/icons';
-import { useNotification } from '../contexts/NotificationContext';
-import Textarea from '../components/ui/Textarea';
 
 const VisaForm = () => {
     return (
@@ -42,11 +40,12 @@ const MobileMoneyForm: React.FC<{ method: PaymentMethod, value: string, onChange
     return (
         <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg mt-2 space-y-2 bg-gray-50 dark:bg-gray-800/50">
             <p className="text-sm">After paying using {method.name} ({method.details}), please paste the confirmation message you receive below.</p>
-            <Textarea
+            <textarea
                 name="paymentDetails"
                 rows={4}
                 value={value}
                 onChange={onChange}
+                className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:bg-gray-900/50 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                 placeholder="e.g., QWERTY12345 Confirmed. Ksh..."
                 required
             />
@@ -58,7 +57,6 @@ const CheckoutPage: React.FC = () => {
   const { cartItems, totalPrice, clearCart, cartCount } = useCart();
   const { settings, addOrder } = useData();
   const { isAuthenticated, user } = useAuth();
-  const { showToast } = useNotification();
   const navigate = useNavigate();
   
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(settings.paymentMethods[0]?.id || null);
@@ -90,7 +88,7 @@ const CheckoutPage: React.FC = () => {
 
   const handleGuestCheckout = () => {
     if (!settings.whatsappNumber || cartItems.length === 0) {
-        showToast('Could not create order. Store owner has not configured WhatsApp or cart is empty.', 'error');
+        alert("Could not create order. WhatsApp number is not set or cart is empty.");
         return;
     }
 
@@ -107,7 +105,7 @@ const CheckoutPage: React.FC = () => {
     window.open(whatsappLink, '_blank');
     
     clearCart();
-    showToast("You've been redirected to WhatsApp to complete your order.", 'info');
+    alert("You've been redirected to WhatsApp to complete your order. Your cart has now been cleared.");
     navigate('/');
   };
 
@@ -136,7 +134,7 @@ const CheckoutPage: React.FC = () => {
         customerAddress: `${address}, ${city}`,
         customerPhone: phone,
         paymentMethod: selectedMethod?.name || 'Unknown',
-        paymentStatus: 'Unpaid', // All orders are Unpaid until confirmed by admin or delivered (for COD)
+        paymentStatus: selectedMethod?.name === 'Payment on Delivery' ? 'Unpaid' : 'Paid',
         paymentDetails: detailsForOrder
     };
 
@@ -146,7 +144,7 @@ const CheckoutPage: React.FC = () => {
     navigate('/order-confirmation', { state: { orderNumber: createdOrder.id }});
   };
 
-  if (cartCount === 0 && !sessionStorage.getItem('order_placed')) {
+  if (cartCount === 0) {
     return null; // Don't render if cart is empty, effect will redirect
   }
 
@@ -189,9 +187,11 @@ const CheckoutPage: React.FC = () => {
     );
   }
 
+  const selectedMethodInfo = settings.paymentMethods.find(p => p.id === selectedPaymentMethodId);
+
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-primary-dark dark:text-white mb-8 text-center">Checkout</h1>
+      <h1 className="text-4xl font-extrabold tracking-tight text-primary-dark dark:text-white mb-8 text-center">Checkout</h1>
       <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-5 gap-12">
         {/* Shipping Details */}
         <div className="lg:col-span-3">
