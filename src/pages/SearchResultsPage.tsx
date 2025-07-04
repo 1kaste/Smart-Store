@@ -118,7 +118,7 @@ const SearchResultsPage: React.FC = () => {
 
             {isLoading && (
                 <div className="flex justify-center items-center py-20">
-                    <Icons.RefreshCcw className="h-12 w-12 animate-spin text-accent-teal" />
+                    <Icons.RefreshCcw className="h-12 w-12 animate-spin text-accent" />
                 </div>
             )}
 
