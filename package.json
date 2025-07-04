@@ -1,7 +1,9 @@
+
 {
   "name": "simusmart-os",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "@google/genai": "^0.12.0",
     "lucide-react": "^0.378.0",
