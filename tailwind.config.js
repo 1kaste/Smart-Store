@@ -11,6 +11,7 @@ module.exports = {
         'background-light': '#F9FAFB',
         'background-dark': '#0D1117',
         'accent': 'var(--color-accent)',
+        'accent-text': 'var(--color-accent-text)',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
