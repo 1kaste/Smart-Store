@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Icons } from './icons';
-import { useData } from '../src/contexts/DataContext';
+import { useData } from '../contexts/DataContext';
 
 const Footer: React.FC = () => {
     const { settings } = useData();
@@ -12,8 +12,12 @@ const Footer: React.FC = () => {
             <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 px-4 py-12 sm:px-6 lg:px-8">
                 {/* About Section */}
                 <div className="space-y-4 lg:col-span-2">
-                    <div className="flex items-center gap-2">
-                        <Icons.Store className="h-7 w-7" />
+                    <div className="flex items-center gap-3">
+                        {settings.logoUrl ? (
+                            <img src={settings.logoUrl} alt={`${settings.shopName} logo`} className="h-8 w-auto" />
+                        ) : (
+                            <Icons.Store className="h-7 w-7" />
+                        )}
                         <span className="font-bold text-xl">{settings.shopName}</span>
                     </div>
                     <p className="text-sm text-gray-400">The best place to find the latest and greatest in smart technology. Your future, delivered.</p>
@@ -67,7 +71,7 @@ const Footer: React.FC = () => {
             
             {settings.paymentMethods && settings.paymentMethods.length > 0 && (
                  <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8 border-t border-gray-700">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex flex-col items-center justify-center gap-4">
                         <h3 className="font-semibold text-md">We Accept:</h3>
                         <div className="flex flex-wrap items-center justify-center gap-4">
                             {settings.paymentMethods.map(method => (
