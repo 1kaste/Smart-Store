@@ -11,7 +11,7 @@ const Button: React.FC<ButtonProps> = ({ className, variant = 'default', size = 
 
   const variantClasses = {
     default: "bg-primary-dark text-white hover:bg-primary-dark/90 dark:bg-gray-200 dark:text-primary-dark dark:hover:bg-gray-200/90",
-    accent: "bg-accent text-white hover:brightness-95",
+    accent: "bg-accent text-accent-text hover:brightness-95",
     destructive: "bg-red-500 text-white hover:bg-red-500/90 dark:bg-red-600 dark:hover:bg-red-600/90",
     outline: "border border-gray-300 bg-transparent hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800",
     ghost: "hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-700 dark:text-gray-300 dark:hover:text-white",
